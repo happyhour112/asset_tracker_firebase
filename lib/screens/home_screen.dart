@@ -1,7 +1,9 @@
 import 'package:asset_tracker/models/my_asset.dart';
 import 'package:asset_tracker/data/dummy_assets.dart';
 import 'package:asset_tracker/screens/new_asset_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -127,6 +129,13 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             onPressed: _addItem,
             icon: const Icon(Icons.add),
+          ),
+          IconButton(
+            onPressed: () {
+              GoogleSignIn().disconnect();
+              FirebaseAuth.instance.signOut();
+            },
+            icon: const Icon(Icons.logout),
           ),
         ],
       ),
