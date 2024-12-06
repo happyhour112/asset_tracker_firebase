@@ -1,6 +1,6 @@
 import 'package:asset_tracker/data/categories.dart';
 import 'package:asset_tracker/models/category.dart';
-import 'package:asset_tracker/models/my_asset.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class NewAssetScreen extends StatefulWidget {
@@ -17,19 +17,30 @@ class _NewAssetScreenState extends State<NewAssetScreen> {
   var _enteredBuyPrice = 1.0;
   var _selectedCategory = categories[Categories.layer1]!;
 
-  void _saveItem() {
+  String colorToHex(Color color) {
+    return '#${color.alpha.toRadixString(16).padLeft(2, '0')}'
+        '${color.red.toRadixString(16).padLeft(2, '0')}'
+        '${color.green.toRadixString(16).padLeft(2, '0')}'
+        '${color.blue.toRadixString(16).padLeft(2, '0')}';
+  }
+
+  Future<void> submitToDb() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      Navigator.of(context).pop(
-        MyAsset(
-          id: DateTime.now().toString(),
-          name: _enteredName,
-          quantity: _enteredQuantity,
-          buyPrice: _enteredBuyPrice,
-          category: _selectedCategory,
-        ),
-      );
+      try {
+        FirebaseFirestore.instance.collection('assets').add({
+          'name': _enteredName,
+          'quantity': _enteredQuantity,
+          'buyPrice': _enteredBuyPrice,
+          'catTitle': _selectedCategory.title,
+          'color': colorToHex(_selectedCategory.color),
+          'created_date': DateTime.now(),
+        });
+      } catch (e) {
+        //print(e);
+      }
     }
+    Navigator.of(context).pop();
   }
 
   @override
@@ -105,7 +116,12 @@ class _NewAssetScreenState extends State<NewAssetScreen> {
                                   color: category.value.color,
                                 ),
                                 const SizedBox(width: 6),
-                                Text(category.value.title),
+                                Expanded(
+                                  child: Text(
+                                    category.value.title,
+                                    overflow: TextOverflow.clip,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -151,7 +167,7 @@ class _NewAssetScreenState extends State<NewAssetScreen> {
                     child: const Text('Reset'),
                   ),
                   ElevatedButton(
-                    onPressed: _saveItem,
+                    onPressed: submitToDb,
                     child: const Text('Add Item'),
                   ),
                 ],
